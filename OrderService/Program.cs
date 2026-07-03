@@ -53,7 +53,9 @@ builder.Services.AddScoped<IFacturationRepository, FacturationRepository>();
 
 
 builder.Services.AddScoped<IGetFacturasHandler, GetFacturasHandler>();
+builder.Services.AddScoped<IGetFacturationMetricsHandler, GetFacturationMetricsHandler>();
 builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
+builder.Services.AddScoped<IConfirmTablePaymentHandler, ConfirmTablePaymentHandler>();
 
 
 

@@ -21,16 +21,22 @@ namespace OrderService.Controllers
     public class FacturationAndMetricalController : ControllerBase
     {
         private readonly IGetFacturasHandler _getFacturasHandler;
+        private readonly IGetFacturationMetricsHandler _getFacturationMetricsHandler;
         private readonly IConfirmPaymentHandler _confirmPaymentHandler;
+        private readonly IConfirmTablePaymentHandler _confirmTablePaymentHandler;
         private readonly ICreateInvoiceFromOrdersCommandHandler _createInvoiceHandler;
 
         public FacturationAndMetricalController(
             IGetFacturasHandler getFacturasHandler,
+            IGetFacturationMetricsHandler getFacturationMetricsHandler,
             IConfirmPaymentHandler confirmPaymentHandler,
+            IConfirmTablePaymentHandler confirmTablePaymentHandler,
             ICreateInvoiceFromOrdersCommandHandler createInvoiceFromOrdersCommandHandler)
         {
             _getFacturasHandler = getFacturasHandler;
+            _getFacturationMetricsHandler = getFacturationMetricsHandler;
             _confirmPaymentHandler = confirmPaymentHandler;
+            _confirmTablePaymentHandler = confirmTablePaymentHandler;
             _createInvoiceHandler = createInvoiceFromOrdersCommandHandler;
             
         }
@@ -43,6 +49,13 @@ namespace OrderService.Controllers
             return Ok(result);
         }
 
+        [HttpGet("facturas/metrics")]
+        public async Task<IActionResult> GetFacturationMetrics(
+            CancellationToken cancellationToken)
+        {
+            var result = await _getFacturationMetricsHandler.Handle(cancellationToken);
+            return Ok(result);
+        }
 
         [HttpPut("facturas/{id}/pay")]
         public async Task<IActionResult> ConfirmPayment(int id)
@@ -55,6 +68,18 @@ namespace OrderService.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpPut("facturas/table/{tableName}/pay")]
+        public async Task<IActionResult> ConfirmTablePayment(
+            string tableName,
+            CancellationToken cancellationToken)
+        {
+            var result = await _confirmTablePaymentHandler.Handle(
+                tableName,
+                cancellationToken);
+
+            return result ? NoContent() : NotFound();
         }
 
         [HttpPost("facturas/from-orders")]

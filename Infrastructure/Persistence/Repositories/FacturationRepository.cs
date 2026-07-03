@@ -79,6 +79,25 @@ namespace Infrastructure.Persistence.Repositories
 
             return true;
         }
+
+        public async Task<bool> MarkLatestAsPaidByTableAsync(
+            string tableName,
+            CancellationToken cancellationToken = default)
+        {
+            var factura = await _context.Facturas
+                .Where(item => item.TableName == tableName && !item.IsPaid)
+                .OrderByDescending(item => item.Date)
+                .ThenByDescending(item => item.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (factura is null)
+                return false;
+
+            factura.IsPaid = true;
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
         public async Task<Factura> CreateAsync(Factura factura)
         {
             if (factura == null)
@@ -110,7 +129,17 @@ namespace Infrastructure.Persistence.Repositories
             await _context.Facturas.AddAsync(factura, ct);
         }
 
-
+        public Task<List<Factura>> GetForMetricsAsync(
+            DateTime fromUtc,
+            DateTime toUtc,
+            CancellationToken cancellationToken = default)
+        {
+            return _context.Facturas
+                .AsNoTracking()
+                .Include(factura => factura.Details)
+                .Where(factura => factura.Date >= fromUtc && factura.Date < toUtc)
+                .ToListAsync(cancellationToken);
+        }
 
     }
 }
