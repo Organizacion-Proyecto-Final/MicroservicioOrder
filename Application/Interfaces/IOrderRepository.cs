@@ -17,4 +17,5 @@ public interface IOrderRepository
     Task<IReadOnlyDictionary<Guid, string>> GetActiveStatusNamesByTableIdsAsync(IEnumerable<Guid> tableIds, CancellationToken cancellationToken = default);
     Task<IReadOnlyDictionary<Guid, Guid>> GetActiveWaiterIdsByTableIdsAsync(IEnumerable<Guid> tableIds, CancellationToken cancellationToken = default);
     Task<bool> HasAnyOrderForTableAsync(Guid tableId, CancellationToken cancellationToken = default);
+    Task<List<Order>> GetByIdsAsyncForFacturation(IEnumerable<Guid> ids, CancellationToken ct = default);
 }

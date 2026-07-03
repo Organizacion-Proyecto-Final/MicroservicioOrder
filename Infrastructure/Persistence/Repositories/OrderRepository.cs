@@ -249,6 +249,21 @@ public class OrderRepository : IOrderRepository
             .GroupBy(order => order.TableId)
             .ToDictionary(group => group.Key, group => group.First().WaiterId);
     }
+    public async Task<List<Order>> GetByIdsAsyncForFacturation(
+        IEnumerable<Guid> ids,
+        CancellationToken ct = default)
+        {
+            var orderIds = ids.Distinct().ToArray();
+
+            if (orderIds.Length == 0)
+                return [];
+
+            return await WithDetails(_context.Orders)
+                .AsSplitQuery()
+                .Where(o => orderIds.Contains(o.Id))
+                .ToListAsync(ct);
+        }
+
 
     public async Task<bool> HasAnyOrderForTableAsync(Guid tableId, CancellationToken ct = default)
         => await _context.Orders.AnyAsync(o => o.TableId == tableId, ct);

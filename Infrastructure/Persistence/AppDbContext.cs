@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrderService.Domain.Constants;
 using OrderService.Domain.Entities;
@@ -15,6 +16,8 @@ public class AppDbContext : DbContext
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
     public DbSet<Status> Statuses => Set<Status>();
     public DbSet<Table> Tables => Set<Table>();
+    public DbSet<Factura> Facturas => Set<Factura>();
+    public DbSet<FacturaDetail> FacturaDetails => Set<FacturaDetail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -157,6 +160,39 @@ public class AppDbContext : DbContext
              .OnDelete(DeleteBehavior.Restrict);
 
             e.HasIndex(h => h.OrderId);
+        });
+
+        modelBuilder.Entity<Factura>(e =>
+        {
+            e.ToTable("Facturas");
+            e.HasKey(f => f.Id);
+            e.Property(f => f.Id).ValueGeneratedOnAdd();
+            e.Property(f => f.TableName).IsRequired();
+            e.Property(f => f.Date).IsRequired();
+            e.Property(f => f.IsPaid).IsRequired();
+            e.Property(f => f.Total).HasColumnType("decimal(18,2)").IsRequired();
+
+            e.HasIndex(f => f.Date);
+            e.HasIndex(f => f.IsPaid);
+            e.HasIndex(f => f.TableName);
+
+            e.HasMany(f => f.Details)
+             .WithOne(d => d.Factura)
+             .HasForeignKey(d => d.FacturaId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<FacturaDetail>(e =>
+        {
+            e.ToTable("FacturaDetails");
+            e.HasKey(d => d.Id);
+            e.Property(d => d.Id).ValueGeneratedOnAdd();
+            e.Property(d => d.Quantity).IsRequired();
+            e.Property(d => d.ProductName).HasMaxLength(200).IsRequired();
+            e.Property(d => d.Price).HasColumnType("decimal(18,2)").IsRequired();
+            e.Property(d => d.FacturaId).IsRequired();
+
+            e.HasIndex(d => d.FacturaId);
         });
 
         ConfigureUtcDateTimes(modelBuilder);
